@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "tech-weekly"
+version = "0.1.0"
+description = "Tech Weekly Flask API"
+authors = ["Tegh Bindra <Bindrategh@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "3.1.0"
+openai = "1.65.5"
+feedparser = "6.0.11"
+APScheduler = "3.11.0"
+gunicorn = "23.0.0"
+requests = "2.31.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

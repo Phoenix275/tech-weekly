@@ -1,32 +1,32 @@
+from flask import Flask, jsonify
 import openai
 import feedparser
-import requests
 import os
+from apscheduler.schedulers.background import BackgroundScheduler
 
-# Initialize OpenAI client
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # Ensure your API key is set
+app = Flask(__name__)
+application = app  # Expose the WSGI callable for Gunicorn
 
-# Define the RSS feed URL
+# Set your OpenAI API key from the environment variable
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 RSS_FEED_URL = "https://rss.cnn.com/rss/edition_technology.rss"
 
+# Global variable to store the latest blog post
+latest_blog_post = None
+
 def fetch_latest_articles():
-    """Fetches the latest articles from the RSS feed."""
+    """Fetches the latest 5 articles from the RSS feed."""
     feed = feedparser.parse(RSS_FEED_URL)
     articles = []
-
-    for entry in feed.entries[:5]:  # Get the latest 5 articles
+    for entry in feed.entries[:5]:
         articles.append(f"{entry.title}: {entry.link}")
-
     return articles
 
 def generate_blog_post(articles):
     """Generates a blog post using OpenAI's API based on the latest articles."""
-    prompt = f"""
-    Write a concise, engaging blog post summarizing the latest tech news:
-    {articles}
-    """
-
-    response = client.chat.completions.create(
+    prompt = f"Write a concise, engaging blog post summarizing the following articles: {articles}"
+    response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a tech blogger."},
@@ -34,42 +34,33 @@ def generate_blog_post(articles):
         ],
         max_tokens=500
     )
-
     return response.choices[0].message.content.strip()
 
-def main():
-    print("🔄 Fetching latest articles...")
-    latest_articles = fetch_latest_articles()
+def update_blog_post():
+    """Fetches articles and updates the global blog post."""
+    global latest_blog_post
+    articles = fetch_latest_articles()
+    latest_blog_post = generate_blog_post(articles)
+    print("Blog post updated.")
 
-    print("📝 Generating blog post using AI...")
-    blog_content = generate_blog_post(latest_articles)
+# Set up APScheduler to run update_blog_post every Monday at 9am
+scheduler = BackgroundScheduler()
+scheduler.add_job(update_blog_post, 'cron', day_of_week='mon', hour=9, minute=0)
+scheduler.start()
 
-    print("\n📰 **Tech Weekly Blog Post:**\n")
-    print(blog_content)
+@app.route('/latest-tech-news')
+def latest_tech_news():
+    """Returns the latest blog post. If not available, update it first."""
+    global latest_blog_post
+    if latest_blog_post is None:
+        update_blog_post()
+    return jsonify({"blog_post": latest_blog_post})
 
-    # Save to index.html
-    html_content = f"""<!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Tech Weekly</title>
-    </head>
-    <body>
-        <h1>Welcome to Tech Weekly</h1>
-        <p>{blog_content}</p>
-    </body>
-    </html>"""
+@app.route('/refresh')
+def refresh_blog():
+    """Manually refreshes the blog post."""
+    update_blog_post()
+    return jsonify({"message": "Blog post refreshed manually.", "blog_post": latest_blog_post})
 
-    with open("index.html", "w") as file:
-        file.write(html_content)
-
-    print("✅ Blog post saved successfully to index.html!")
-
-    # Push the updated file to GitHub automatically
-    os.system("git add index.html")
-    os.system('git commit -m "Auto-update blog post"')
-    os.system("git push origin main")
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    app.run(debug=True, port=5001)

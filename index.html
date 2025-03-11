@@ -9,20 +9,32 @@
 <body>
     <h1>Welcome to Tech Weekly</h1>
     <p id="blog-content">Loading latest tech news...</p>
+    <button onclick="refreshContent()">Refresh Now</button>
 
     <script>
         async function fetchLatestNews() {
             try {
-                const response = await fetch("index.html?t=" + new Date().getTime());
-                const text = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(text, "text/html");
-                const latestContent = doc.querySelector("p").innerHTML;
-                document.getElementById("blog-content").innerHTML = latestContent;
+                const response = await fetch('https://tech-weekly.onrender.com/latest-tech-news');
+                const data = await response.json();
+                document.getElementById('blog-content').innerHTML = data.blog_post;
             } catch (error) {
                 console.error("Error fetching latest news:", error);
+                document.getElementById('blog-content').innerHTML = "Error loading news.";
             }
         }
+
+        async function refreshContent() {
+            try {
+                const response = await fetch('https://tech-weekly.onrender.com/refresh');
+                const data = await response.json();
+                document.getElementById('blog-content').innerHTML = data.blog_post;
+            } catch (error) {
+                console.error("Error refreshing news:", error);
+                document.getElementById('blog-content').innerHTML = "Error refreshing news.";
+            }
+        }
+
+        // Load the current blog post on page load.
         fetchLatestNews();
     </script>
 </body>
