@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<<<<<<< HEAD
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Weekly</title>
+</head>
+<body>
+    <h1>Welcome to Tech Weekly</h1>
+    <p id="blog-content">Loading latest tech news...</p>
+
+    <script>
+        async function fetchLatestNews() {
+            try {
+                const response = await fetch("index.html?t=" + new Date().getTime());
+                const text = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, "text/html");
+                const latestContent = doc.querySelector("p").innerHTML;
+                document.getElementById("blog-content").innerHTML = latestContent;
+            } catch (error) {
+                console.error("Error fetching latest news:", error);
+            }
+        }
+        fetchLatestNews();
+    </script>
+</body>
+</html>
+=======
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tech Weekly</title>
+    </head>
+    <body>
+        <h1>Welcome to Tech Weekly</h1>
+        <p>Title: "Tech Roundup: What's New in the World of Technology"
+
+Hey tech enthusiasts, it's time for a roundup of the latest tech news making waves in the industry! From exciting product launches to groundbreaking developments, here's a quick summary of what's been happening:
+
+1. Apple unveils the new iPhone 13: Apple recently announced the release of the much-anticipated iPhone 13 lineup. The new devices boast improved cameras, faster performance, and longer battery life, making them a hit among Apple fans.
+
+2. Google introduces Pixel 6: Google also stepped up its game with the unveiling of the Pixel 6 and Pixel 6 Pro. The new smartphones feature impressive camera upgrades and advanced AI capabilities, positioning them as strong contenders in the competitive smartphone market.
+
+3. Tesla's latest software update: Tesla rolled out a software update that includes new features such as a "Mind of Car" visualization, improved navigation, and enhanced driver-assist capabilities. The update underscores Tesla's commitment to innovation in the electric vehicle sector.
+
+4. Microsoft's Windows 11 launch: Microsoft officially launched Windows 11, its latest operating system offering a refreshed design, enhanced productivity features, and better integration with Microsoft 365 services. The release has sparked excitement among Windows users looking for a more seamless computing experience.
+
+5. Facebook's rebrand to Meta: In a bold move, Facebook announced its rebranding to Meta, reflecting its focus on the metaverse and virtual reality. The company's vision for the future of social networking and immersive experiences has garnered attention and raised intriguing possibilities for the tech world.
+
+That's a wrap on the latest tech updates shaping the industry landscape. Stay tuned for more exciting developments as technology continues to evolve at a rapid pace!</p>
+    </body>
+    </html>
+>>>>>>> 83e846d (Auto-update blog post)
