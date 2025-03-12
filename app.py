@@ -7,8 +7,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 app = Flask(__name__)
 application = app  # Expose the WSGI callable for Gunicorn
 
-# Set your OpenAI API key from the environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Initialize OpenAI client (New format)
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 RSS_FEED_URL = "https://rss.cnn.com/rss/edition_technology.rss"
 
@@ -26,7 +26,7 @@ def fetch_latest_articles():
 def generate_blog_post(articles):
     """Generates a blog post using OpenAI's API based on the latest articles."""
     prompt = f"Write a concise, engaging blog post summarizing the following articles: {articles}"
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a tech blogger."},
@@ -43,15 +43,19 @@ def update_blog_post():
     latest_blog_post = generate_blog_post(articles)
     print("✅ Blog post updated.")
 
-# Set up APScheduler to run update_blog_post every Monday at 9am
+# Set up APScheduler to run update_blog_post every Monday at 9 AM
 scheduler = BackgroundScheduler()
 scheduler.add_job(update_blog_post, 'cron', day_of_week='mon', hour=9, minute=0)
 scheduler.start()
 
 @app.route("/")
 def home():
-    """Home route with a refresh button."""
-    return render_template_string("""
+    """Home route that displays the latest news with a refresh button."""
+    global latest_blog_post
+    if latest_blog_post is None:
+        update_blog_post()  # Ensures there's content on first load
+    
+    return render_template_string(f"""
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -59,25 +63,72 @@ def home():
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Tech Weekly</title>
             <style>
-                body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-                h1 { color: #333; }
-                button {
-                    background-color: #007BFF; color: white; padding: 10px 20px;
-                    border: none; cursor: pointer; font-size: 16px; border-radius: 5px;
-                }
-                button:hover { background-color: #0056b3; }
+                body {{
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                    padding: 50px;
+                    background-color: #f4f4f4;
+                }}
+                h1 {{
+                    color: #333;
+                    font-size: 2.5em;
+                }}
+                p {{
+                    font-size: 1.2em;
+                    color: #555;
+                }}
+                #blog-content {{
+                    background: white;
+                    padding: 20px;
+                    border-radius: 8px;
+                    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+                    max-width: 800px;
+                    margin: 20px auto;
+                    text-align: left;
+                }}
+                button {{
+                    background-color: #007BFF;
+                    color: white;
+                    padding: 12px 24px;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 16px;
+                    border-radius: 5px;
+                    transition: 0.3s;
+                }}
+                button:hover {{
+                    background-color: #0056b3;
+                }}
+                #loading {{
+                    display: none;
+                    font-size: 16px;
+                    color: #007BFF;
+                }}
             </style>
         </head>
         <body>
             <h1>Tech Weekly</h1>
             <p>🚀 AI-powered tech news updates every Monday at 9 AM.</p>
+            <div id="blog-content">
+                <h2>Latest Tech News</h2>
+                <p id="news-text">{latest_blog_post}</p>
+            </div>
             <button onclick="refreshNews()">🔄 Refresh News</button>
+            <p id="loading">Updating news... ⏳</p>
             <script>
-                function refreshNews() {
+                function refreshNews() {{
+                    document.getElementById("loading").style.display = "block";
                     fetch('/refresh')
                         .then(response => response.json())
-                        .then(data => alert('News Updated: ' + data.message));
-                }
+                        .then(data => {{
+                            document.getElementById("news-text").innerText = data.blog_post;
+                            document.getElementById("loading").style.display = "none";
+                        }})
+                        .catch(error => {{
+                            alert('Error updating news.');
+                            document.getElementById("loading").style.display = "none";
+                        }});
+                }}
             </script>
         </body>
         </html>
