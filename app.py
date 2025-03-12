@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template_string
 import openai
 import feedparser
 import os
@@ -41,7 +41,7 @@ def update_blog_post():
     global latest_blog_post
     articles = fetch_latest_articles()
     latest_blog_post = generate_blog_post(articles)
-    print("Blog post updated.")
+    print("✅ Blog post updated.")
 
 # Set up APScheduler to run update_blog_post every Monday at 9am
 scheduler = BackgroundScheduler()
@@ -50,8 +50,38 @@ scheduler.start()
 
 @app.route("/")
 def home():
-    """Home route to confirm the app is running."""
-    return "Welcome to Tech Weekly API! Use /latest-tech-news to see the latest blog post."
+    """Home route with a refresh button."""
+    return render_template_string("""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Tech Weekly</title>
+            <style>
+                body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+                h1 { color: #333; }
+                button {
+                    background-color: #007BFF; color: white; padding: 10px 20px;
+                    border: none; cursor: pointer; font-size: 16px; border-radius: 5px;
+                }
+                button:hover { background-color: #0056b3; }
+            </style>
+        </head>
+        <body>
+            <h1>Tech Weekly</h1>
+            <p>🚀 AI-powered tech news updates every Monday at 9 AM.</p>
+            <button onclick="refreshNews()">🔄 Refresh News</button>
+            <script>
+                function refreshNews() {
+                    fetch('/refresh')
+                        .then(response => response.json())
+                        .then(data => alert('News Updated: ' + data.message));
+                }
+            </script>
+        </body>
+        </html>
+    """)
 
 @app.route("/latest-tech-news")
 def latest_tech_news():
