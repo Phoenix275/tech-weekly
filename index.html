@@ -4,75 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tech Weekly</title>
-    <script>
-        async function fetchNews() {
-            try {
-                const response = await fetch("/latest-tech-news");
-                const data = await response.json();
-                document.getElementById("news-content").innerText = data.blog_post;
-            } catch (error) {
-                console.error("Error fetching news:", error);
-                document.getElementById("news-content").innerText = "Failed to load news.";
-            }
-        }
-
-        async function refreshNews() {
-            try {
-                const response = await fetch("/refresh");
-                const data = await response.json();
-                document.getElementById("news-content").innerText = data.blog_post;
-            } catch (error) {
-                console.error("Error refreshing news:", error);
-                document.getElementById("news-content").innerText = "Failed to refresh news.";
-            }
-        }
-
-        window.onload = fetchNews; // Automatically load news when the page loads
-    </script>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin: 20px;
             background-color: #f4f4f4;
-        }
-        h1 {
-            font-size: 2.5em;
+            padding: 50px;
             color: #333;
         }
-        p {
-            font-size: 1.2em;
-            color: #666;
+        h1 {
+            color: #222;
+            font-size: 36px;
+            font-weight: bold;
         }
-        #news-content {
-            margin-top: 20px;
-            padding: 15px;
+        .container {
             background: white;
-            border-radius: 5px;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 700px;
+            margin: auto;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
+        }
+        .news-content {
+            text-align: left;
+            margin-top: 20px;
         }
         button {
-            background-color: #007bff;
+            background-color: #007BFF;
             color: white;
-            font-size: 1.2em;
             padding: 10px 20px;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
             margin-top: 20px;
         }
         button:hover {
             background-color: #0056b3;
+        }
+        footer {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #666;
         }
     </style>
 </head>
 <body>
     <h1>Tech Weekly</h1>
     <p>🚀 AI-powered tech news updates every Monday at 9 AM.</p>
-    <div id="news-content">Loading latest news...</div>
-    <button onclick="refreshNews()">🔄 Refresh News</button>
+
+    <div class="container">
+        <h2>Latest Tech News</h2>
+        <div class="news-content" id="news">
+            <p>Loading latest news...</p>
+        </div>
+        <button onclick="refreshNews()">🔄 Refresh News</button>
+    </div>
+
+    <footer>
+        Made by <strong>Tegh Bindra</strong> © 2025
+    </footer>
+
+    <script>
+        function fetchLatestNews() {
+            fetch('/latest-tech-news')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("news").innerHTML = `<p>${data.blog_post}</p>`;
+                })
+                .catch(error => console.error('Error fetching news:', error));
+        }
+
+        function refreshNews() {
+            fetch('/refresh')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("news").innerHTML = `<p>${data.blog_post}</p>`;
+                });
+        }
+
+        fetchLatestNews();
+    </script>
 </body>
 </html>
