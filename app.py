@@ -48,7 +48,12 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(update_blog_post, 'cron', day_of_week='mon', hour=9, minute=0)
 scheduler.start()
 
-@app.route('/latest-tech-news')
+@app.route("/")
+def home():
+    """Home route to confirm the app is running."""
+    return "Welcome to Tech Weekly API! Use /latest-tech-news to see the latest blog post."
+
+@app.route("/latest-tech-news")
 def latest_tech_news():
     """Returns the latest blog post. If not available, update it first."""
     global latest_blog_post
@@ -56,11 +61,11 @@ def latest_tech_news():
         update_blog_post()
     return jsonify({"blog_post": latest_blog_post})
 
-@app.route('/refresh')
+@app.route("/refresh")
 def refresh_blog():
     """Manually refreshes the blog post."""
     update_blog_post()
     return jsonify({"message": "Blog post refreshed manually.", "blog_post": latest_blog_post})
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=True)
