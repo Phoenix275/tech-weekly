@@ -1,68 +1,78 @@
 <!DOCTYPE html>
-<<<<<<< HEAD
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tech Weekly</title>
-</head>
-<body>
-    <h1>Welcome to Tech Weekly</h1>
-    <p id="blog-content">Loading latest tech news...</p>
-    <button onclick="refreshContent()">Refresh Now</button>
-
     <script>
-        async function fetchLatestNews() {
+        async function fetchNews() {
             try {
-                const response = await fetch('https://tech-weekly.onrender.com/latest-tech-news');
+                const response = await fetch("/latest-tech-news");
                 const data = await response.json();
-                document.getElementById('blog-content').innerHTML = data.blog_post;
+                document.getElementById("news-content").innerText = data.blog_post;
             } catch (error) {
-                console.error("Error fetching latest news:", error);
-                document.getElementById('blog-content').innerHTML = "Error loading news.";
+                console.error("Error fetching news:", error);
+                document.getElementById("news-content").innerText = "Failed to load news.";
             }
         }
 
-        async function refreshContent() {
+        async function refreshNews() {
             try {
-                const response = await fetch('https://tech-weekly.onrender.com/refresh');
+                const response = await fetch("/refresh");
                 const data = await response.json();
-                document.getElementById('blog-content').innerHTML = data.blog_post;
+                document.getElementById("news-content").innerText = data.blog_post;
             } catch (error) {
                 console.error("Error refreshing news:", error);
-                document.getElementById('blog-content').innerHTML = "Error refreshing news.";
+                document.getElementById("news-content").innerText = "Failed to refresh news.";
             }
         }
 
-        // Load the current blog post on page load.
-        fetchLatestNews();
+        window.onload = fetchNews; // Automatically load news when the page loads
     </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            font-size: 2.5em;
+            color: #333;
+        }
+        p {
+            font-size: 1.2em;
+            color: #666;
+        }
+        #news-content {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            font-size: 1.2em;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tech Weekly</h1>
+    <p>🚀 AI-powered tech news updates every Monday at 9 AM.</p>
+    <div id="news-content">Loading latest news...</div>
+    <button onclick="refreshNews()">🔄 Refresh News</button>
 </body>
 </html>
-=======
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Tech Weekly</title>
-    </head>
-    <body>
-        <h1>Welcome to Tech Weekly</h1>
-        <p>Title: "Tech Roundup: What's New in the World of Technology"
-
-Hey tech enthusiasts, it's time for a roundup of the latest tech news making waves in the industry! From exciting product launches to groundbreaking developments, here's a quick summary of what's been happening:
-
-1. Apple unveils the new iPhone 13: Apple recently announced the release of the much-anticipated iPhone 13 lineup. The new devices boast improved cameras, faster performance, and longer battery life, making them a hit among Apple fans.
-
-2. Google introduces Pixel 6: Google also stepped up its game with the unveiling of the Pixel 6 and Pixel 6 Pro. The new smartphones feature impressive camera upgrades and advanced AI capabilities, positioning them as strong contenders in the competitive smartphone market.
-
-3. Tesla's latest software update: Tesla rolled out a software update that includes new features such as a "Mind of Car" visualization, improved navigation, and enhanced driver-assist capabilities. The update underscores Tesla's commitment to innovation in the electric vehicle sector.
-
-4. Microsoft's Windows 11 launch: Microsoft officially launched Windows 11, its latest operating system offering a refreshed design, enhanced productivity features, and better integration with Microsoft 365 services. The release has sparked excitement among Windows users looking for a more seamless computing experience.
-
-5. Facebook's rebrand to Meta: In a bold move, Facebook announced its rebranding to Meta, reflecting its focus on the metaverse and virtual reality. The company's vision for the future of social networking and immersive experiences has garnered attention and raised intriguing possibilities for the tech world.
-
-That's a wrap on the latest tech updates shaping the industry landscape. Stay tuned for more exciting developments as technology continues to evolve at a rapid pace!</p>
-    </body>
-    </html>
->>>>>>> 83e846d (Auto-update blog post)
