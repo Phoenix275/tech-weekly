@@ -26,13 +26,30 @@ def fetch_latest_articles():
 def generate_blog_post(articles):
     """Generates a well-structured blog post using OpenAI's API."""
     prompt = f"""
-    You are a tech journalist writing for a publication like The New York Times or Wired.
-    Write a compelling, concise tech news summary based on the following trending articles:
-    
+    You are a professional tech journalist writing for The New York Times, Wired, or The Verge.
+    Write a well-structured, engaging tech blog based on the following trending articles:
+
     {articles}
 
-    The format should feel like an engaging news blog. Use paragraphs and bullet points where needed.
-    Avoid unnecessary introductions like "Sure, I can help!". Just deliver the article.
+    **Format Guidelines:**
+    - Use a **clear title** at the top.
+    - Use **h2 headings** for each section.
+    - Separate sections into **paragraphs**.
+    - Avoid **one giant text block**.
+    - **DO NOT** say things like "Sure! I'd be happy to help."
+    - **DO NOT** use asterisks for bold (**like this**), use **proper HTML `<h2>` and `<strong>` tags**.
+
+    Example Structure:
+    ```
+    <h1>The Future of AI in Healthcare</h1>
+    <p>Artificial intelligence is transforming the healthcare industry...</p>
+
+    <h2>AI-Powered Diagnostic Tools</h2>
+    <p>Companies like IBM and Google Health are investing in AI algorithms...</p>
+
+    <h2>Personalized Treatment Plans</h2>
+    <p>AI is analyzing vast amounts of patient data to create...</p>
+    ```
     """
     
     try:
@@ -42,7 +59,7 @@ def generate_blog_post(articles):
                 {"role": "system", "content": "You are a professional tech journalist."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=600
+            max_tokens=700
         )
         content = response.choices[0].message.content.strip()
 
@@ -109,6 +126,10 @@ def home():
                     font-size: 1.1em;
                     line-height: 1.6;
                 }}
+                h2 {{
+                    color: #007BFF;
+                    margin-top: 15px;
+                }}
                 ul {{
                     padding-left: 20px;
                     line-height: 1.6;
@@ -145,7 +166,7 @@ def home():
             <p>🚀 AI-powered tech news updates every Monday at 9 AM.</p>
             <div id="blog-content">
                 <h2>Latest Tech News</h2>
-                <p id="news-text">{latest_blog_post}</p>
+                <div id="news-text">{latest_blog_post}</div>
             </div>
             <button onclick="refreshNews()">🔄 Refresh News</button>
             <p id="loading">Updating news... ⏳</p>
