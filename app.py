@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 app = Flask(__name__)
 application = app  # Expose the WSGI callable for Gunicorn
 
-# Initialize OpenAI client (New format)
+# Initialize OpenAI client
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 RSS_FEED_URL = "https://rss.cnn.com/rss/edition_technology.rss"
@@ -20,21 +20,40 @@ def fetch_latest_articles():
     feed = feedparser.parse(RSS_FEED_URL)
     articles = []
     for entry in feed.entries[:5]:
-        articles.append(f"{entry.title}: {entry.link}")
+        articles.append(f'"{entry.title}" - {entry.link}')
     return articles
 
 def generate_blog_post(articles):
-    """Generates a blog post using OpenAI's API based on the latest articles."""
-    prompt = f"Write a concise, engaging blog post summarizing the following articles: {articles}"
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a tech blogger."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=500
-    )
-    return response.choices[0].message.content.strip()
+    """Generates a well-structured blog post using OpenAI's API."""
+    prompt = f"""
+    You are a tech journalist writing for a publication like The New York Times or Wired.
+    Write a compelling, concise tech news summary based on the following trending articles:
+    
+    {articles}
+
+    The format should feel like an engaging news blog. Use paragraphs and bullet points where needed.
+    Avoid unnecessary introductions like "Sure, I can help!". Just deliver the article.
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a professional tech journalist."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=600
+        )
+        content = response.choices[0].message.content.strip()
+
+        # Ensure OpenAI does not return irrelevant generic responses
+        if "Sure" in content or "I'd be happy to help" in content:
+            return "⚠️ Error: AI response was irrelevant. Please refresh again."
+        
+        return content
+
+    except Exception as e:
+        return f"⚠️ Error generating news: {str(e)}"
 
 def update_blog_post():
     """Fetches articles and updates the global blog post."""
@@ -42,6 +61,9 @@ def update_blog_post():
     articles = fetch_latest_articles()
     latest_blog_post = generate_blog_post(articles)
     print("✅ Blog post updated.")
+
+# Generate the first blog post at startup
+update_blog_post()
 
 # Set up APScheduler to run update_blog_post every Monday at 9 AM
 scheduler = BackgroundScheduler()
@@ -52,9 +74,7 @@ scheduler.start()
 def home():
     """Home route that displays the latest news with a refresh button."""
     global latest_blog_post
-    if latest_blog_post is None:
-        update_blog_post()  # Ensures there's content on first load
-    
+
     return render_template_string(f"""
         <!DOCTYPE html>
         <html lang="en">
@@ -64,14 +84,15 @@ def home():
             <title>Tech Weekly</title>
             <style>
                 body {{
-                    font-family: Arial, sans-serif;
+                    font-family: 'Arial', sans-serif;
                     text-align: center;
                     padding: 50px;
-                    background-color: #f4f4f4;
+                    background-color: #f8f9fa;
                 }}
                 h1 {{
-                    color: #333;
+                    color: #222;
                     font-size: 2.5em;
+                    margin-bottom: 10px;
                 }}
                 p {{
                     font-size: 1.2em;
@@ -81,10 +102,16 @@ def home():
                     background: white;
                     padding: 20px;
                     border-radius: 8px;
-                    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+                    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
                     max-width: 800px;
                     margin: 20px auto;
                     text-align: left;
+                    font-size: 1.1em;
+                    line-height: 1.6;
+                }}
+                ul {{
+                    padding-left: 20px;
+                    line-height: 1.6;
                 }}
                 button {{
                     background-color: #007BFF;
@@ -95,6 +122,7 @@ def home():
                     font-size: 16px;
                     border-radius: 5px;
                     transition: 0.3s;
+                    margin-top: 10px;
                 }}
                 button:hover {{
                     background-color: #0056b3;
@@ -103,6 +131,12 @@ def home():
                     display: none;
                     font-size: 16px;
                     color: #007BFF;
+                    margin-top: 10px;
+                }}
+                footer {{
+                    margin-top: 40px;
+                    font-size: 14px;
+                    color: #777;
                 }}
             </style>
         </head>
@@ -115,13 +149,18 @@ def home():
             </div>
             <button onclick="refreshNews()">🔄 Refresh News</button>
             <p id="loading">Updating news... ⏳</p>
+
+            <footer>
+                <p>Created by <strong>Tegh Bindra</strong> | © 2025</p>
+            </footer>
+
             <script>
                 function refreshNews() {{
                     document.getElementById("loading").style.display = "block";
                     fetch('/refresh')
                         .then(response => response.json())
                         .then(data => {{
-                            document.getElementById("news-text").innerText = data.blog_post;
+                            document.getElementById("news-text").innerHTML = data.blog_post;
                             document.getElementById("loading").style.display = "none";
                         }})
                         .catch(error => {{
