@@ -13,7 +13,7 @@ client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 RSS_FEED_URL = "https://rss.cnn.com/rss/edition_technology.rss"
 
 # Global variable to store the latest blog post
-latest_blog_post = None
+latest_blog_post = "Loading latest business insights..."
 
 def fetch_latest_articles():
     """Fetches the latest 5 articles from the RSS feed."""
@@ -26,50 +26,46 @@ def fetch_latest_articles():
 def generate_blog_post(articles):
     """Generates a well-structured blog post using OpenAI's API."""
     prompt = f"""
-    You are a professional business & tech journalist writing for Forbes or The Wall Street Journal.
-    Write an engaging blog post for business-minded individuals aged 50+.
+    You are a professional business journalist writing for Forbes or The Wall Street Journal.
+    Your audience consists of business owners aged 50+.
+    
+    Based on these trending articles, write a **detailed and engaging** business insight post:
     
     {articles}
 
     **Format Guidelines:**
-    - Use **clear headlines** for each section.
-    - Separate sections into **paragraphs** for readability.
-    - **NO** AI-related labels should appear in the content.
-    - **DO NOT** include "In conclusion..." at the end.
-    - The tone should be informative and engaging.
+    - **Use HTML structure** for proper formatting.
+    - **Use <h2> for headings**.
+    - **Use <p> for paragraphs** (no single giant block of text).
+    - **Make the article informative, engaging, and easy to read.**
+    - **Avoid generic AI phrases** like "Sure! I'd be happy to help."
 
-    Example Structure:
+    Example:
     ```
-    <h1>5G: The Future of Business Communication</h1>
-    <p>As businesses continue adapting to digital transformation...</p>
+    <h1>How 5G is Changing Business Communication</h1>
+    <p>Businesses are adopting 5G networks at a rapid pace...</p>
 
     <h2>Faster Networks, Faster Growth</h2>
-    <p>The rollout of 5G technology allows companies to...</p>
-
-    <h2>Why It Matters</h2>
-    <p>For business owners, staying ahead of trends is critical...</p>
+    <p>New technology allows companies to expand digitally...</p>
     ```
     """
     
     try:
         response = client.chat.completions.create(
             model="gpt-4-turbo",
-            messages=[
-                {"role": "system", "content": "You are a professional business journalist."},
-                {"role": "user", "content": prompt}
-            ],
+            messages=[{"role": "user", "content": prompt}],
             max_tokens=700
         )
         content = response.choices[0].message.content.strip()
 
         # Ensure OpenAI does not return irrelevant responses
-        if "Sure" in content or "I'd be happy to help" in content:
-            return "⚠️ Error: AI response was irrelevant. Please refresh again."
+        if not content or "Sure" in content or "I'd be happy to help" in content:
+            return "<p>Error: AI did not generate useful content. Try refreshing.</p>"
         
         return content
 
     except Exception as e:
-        return f"⚠️ Error generating news: {str(e)}"
+        return f"<p>Error generating news: {str(e)}</p>"
 
 def update_blog_post():
     """Fetches articles and updates the global blog post."""
@@ -81,7 +77,7 @@ def update_blog_post():
 # Generate the first blog post at startup
 update_blog_post()
 
-# Set up APScheduler to run update_blog_post every Monday at 9 AM
+# Set up APScheduler to update blog post every Monday at 9 AM
 scheduler = BackgroundScheduler()
 scheduler.add_job(update_blog_post, 'cron', day_of_week='mon', hour=9, minute=0)
 scheduler.start()
@@ -107,13 +103,11 @@ def home():
                     color: white;
                 }}
                 h1 {{
-                    color: #222;
                     font-size: 2.5em;
                     margin-bottom: 10px;
                 }}
-                p {{
-                    font-size: 1.2em;
-                    color: white;
+                p, h2 {{
+                    color: black; /* Ensure text is visible */
                 }}
                 #blog-content {{
                     background: white;
@@ -125,15 +119,10 @@ def home():
                     text-align: left;
                     font-size: 1.1em;
                     line-height: 1.6;
-                    color: black;
                 }}
                 h2 {{
                     color: #007BFF;
                     margin-top: 15px;
-                }}
-                ul {{
-                    padding-left: 20px;
-                    line-height: 1.6;
                 }}
                 button {{
                     background-color: #007BFF;
