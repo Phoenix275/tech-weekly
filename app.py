@@ -1,6 +1,3 @@
-
-
-
 from flask import Flask, jsonify, render_template_string
 import openai
 import os
@@ -23,8 +20,8 @@ def generate_newsletter():
                     "content": (
                         "You are a newsletter generator for baby boomers planning to sell their companies. "
                         "Generate a JSON object with exactly these keys: 'featured', 'quick_tips', 'spotlight', and 'looking_ahead'. "
-                        "Ensure 'quick_tips' is an array of strings. Write the content so that it reads like a long, engaging blog post with detailed explanations, creative tips, and insightful commentary. "
-                        "Output only the JSON without any extra text or markdown formatting."
+                        "Ensure 'quick_tips' is an array of strings. Write the content so that it reads like a long, engaging blog post "
+                        "with detailed explanations, creative tips, and insightful commentary. Output only the JSON without any extra text."
                     )
                 },
                 {
@@ -36,7 +33,9 @@ def generate_newsletter():
             max_tokens=800
         )
         content = response.choices[0].message['content'].strip()
-        # Remove any markdown code block formatting if present.
+        # Debug: print the raw API response to the logs
+        print("Raw API response:", content)
+        # Remove markdown formatting if present
         if content.startswith("```") and content.endswith("```"):
             content = content.strip("```")
         newsletter_data = json.loads(content)

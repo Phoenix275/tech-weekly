@@ -1,0 +1,68 @@
+/* Overall Page Styles */
+body {
+    font-family: 'Georgia', serif;
+    background-color: #f2f7f5;  /* Soft, inviting pastel background */
+    color: #333;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+/* Header Styles */
+header {
+    background: #2b6777;
+    color: white;
+    padding: 20px 0;
+}
+header h1 {
+    margin: 0;
+    font-size: 40px;
+}
+
+/* Container for Newsletter Sections */
+.container {
+    background: #ffffff;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+/* Newsletter Section Styles */
+.newsletter-section {
+    margin-bottom: 30px;
+}
+.newsletter-section h2 {
+    color: #2b6777;
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+.newsletter-section p, 
+.newsletter-section ul {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Button Styles */
+button {
+    background-color: #007BFF;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+}
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Footer Styles */
+footer {
+    margin-top: 40px;
+    font-size: 14px;
+    color: #666;
+    padding-bottom: 20px;
+}

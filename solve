@@ -1,0 +1,46 @@
+def solve():
+    import sys
+    input = sys.stdin.readline
+    T = int(input().strip())
+    for _ in range(T):
+        # Read the number of elements and the maximum allowed PRINT statements
+        n, K = map(int, input().split())
+        # Read the sequence to be output
+        seq = list(map(int, input().split()))
+        
+        # dp[i][j] will store the minimal number of PRINT statements needed to output seq[i:j+1]
+        dp = [[float('inf')] * n for _ in range(n)]
+        
+        # Base case: a single element requires one PRINT statement.
+        for i in range(n):
+            dp[i][i] = 1
+        
+        # Consider segments of increasing lengths.
+        for length in range(2, n+1):
+            for i in range(n - length + 1):
+                j = i + length - 1
+                # First, try splitting the segment into two parts.
+                for k in range(i, j):
+                    dp[i][j] = min(dp[i][j], dp[i][k] + dp[k+1][j])
+                    
+                # Next, check if the segment is a repetition of a smaller block.
+                L = j - i + 1
+                # Try every possible block length that divides L.
+                for block_len in range(1, L):
+                    if L % block_len == 0:
+                        ok = True
+                        for k in range(i, j+1):
+                            if seq[k] != seq[i + ((k - i) % block_len)]:
+                                ok = False
+                                break
+                        if ok:
+                            dp[i][j] = min(dp[i][j], dp[i][i + block_len - 1])
+        
+        # Output "YES" if the sequence can be produced with at most K PRINT statements, otherwise "NO".
+        if dp[0][n-1] <= K:
+            sys.stdout.write("YES\n")
+        else:
+            sys.stdout.write("NO\n")
+            
+if __name__ == '__main__':
+    solve()
