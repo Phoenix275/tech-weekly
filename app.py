@@ -1,3 +1,6 @@
+
+
+
 from flask import Flask, jsonify, render_template_string
 import openai
 import os
@@ -17,19 +20,25 @@ def generate_newsletter():
             messages=[
                 {
                     "role": "system",
-                    "content": ("You are a newsletter generator for baby boomers planning to sell their companies. "
-                                "Generate a JSON with keys 'featured', 'quick_tips' (an array of strings), 'spotlight', and 'looking_ahead'. "
-                                "Ensure the content is engaging, informative, and fun. Provide enough detail so it reads like a longer blog post.")
+                    "content": (
+                        "You are a newsletter generator for baby boomers planning to sell their companies. "
+                        "Generate a JSON object with exactly these keys: 'featured', 'quick_tips', 'spotlight', and 'looking_ahead'. "
+                        "Ensure 'quick_tips' is an array of strings. Write the content so that it reads like a long, engaging blog post with detailed explanations, creative tips, and insightful commentary. "
+                        "Output only the JSON without any extra text or markdown formatting."
+                    )
                 },
                 {
                     "role": "user",
-                    "content": "Generate the newsletter content for this week."
+                    "content": "Generate the detailed newsletter content for this week."
                 }
             ],
             temperature=0.7,
-            max_tokens=500
+            max_tokens=800
         )
-        content = response.choices[0].message['content']
+        content = response.choices[0].message['content'].strip()
+        # Remove any markdown code block formatting if present.
+        if content.startswith("```") and content.endswith("```"):
+            content = content.strip("```")
         newsletter_data = json.loads(content)
         return newsletter_data
     except Exception as e:
@@ -54,7 +63,6 @@ scheduler.start()
 
 @app.route("/")
 def home():
-    print("=== New code is running ===")  # Check Render logs for this message.
     newsletter_html = f"""
     <!DOCTYPE html>
     <html lang="en">
