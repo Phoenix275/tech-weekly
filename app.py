@@ -27,28 +27,24 @@ def generate_blog_post(articles):
     """Generates a well-structured blog post using OpenAI's API."""
     prompt = f"""
     You are a professional business journalist writing for The Wall Street Journal or Forbes.
-    Write an engaging business news article based on the following trending topics:
+    Write an engaging, easy-to-read business news article based on the following trending topics:
 
     {articles}
 
     **Format Guidelines:**
-    - Use a **clear and engaging title** as `<h1>Title Here</h1>`.
-    - Use **h2 headings** for major sections (`<h2>Heading Here</h2>`).
-    - Use **proper paragraph formatting** with `<p>` tags.
-    - Avoid returning Markdown (`##` headings) or unnecessary asterisks.
-    - Ensure the article is structured like a real business article.
+    - Use a clear and engaging <h1> title.
+    - Use <h2> headings for major topics.
+    - Use <p> paragraphs for clarity and visual spacing.
+    - Avoid dense blocks of text.
+    - Keep it relevant for Baby Boomer business owners.
+    - Avoid mentioning AI in the article body.
 
     Example Structure:
-    ```
-    <h1>The Future of Small Businesses in a Changing Economy</h1>
-    <p>Small businesses are adapting to new market trends...</p>
+    <h1>How Small Businesses Are Embracing Change</h1>
+    <p>From inflation to innovation, businesses are adapting...</p>
 
-    <h2>Shifting Consumer Behavior</h2>
-    <p>Recent studies show that consumers are prioritizing...</p>
-
-    <h2>Technological Advancements Driving Change</h2>
-    <p>Businesses are leveraging AI tools to optimize...</p>
-    ```
+    <h2>Healthcare & Insurance</h2>
+    <p>What Baby Boomers need to know about current policies...</p>
     """
 
     try:
@@ -62,33 +58,30 @@ def generate_blog_post(articles):
         )
         content = response.choices[0].message.content.strip()
 
-        # Ensure OpenAI does not return irrelevant responses
         if "Sure" in content or "I'd be happy to help" in content:
             return "⚠️ Error: AI response was irrelevant. Please refresh again."
         
-        return content  # AI response should now be properly formatted HTML
+        return content
 
     except Exception as e:
         return f"⚠️ Error generating news: {str(e)}"
 
 def update_blog_post():
-    """Fetches articles and updates the global blog post."""
     global latest_blog_post
     articles = fetch_latest_articles()
     latest_blog_post = generate_blog_post(articles)
     print("✅ Blog post updated.")
 
-# Generate the first blog post at startup
+# Generate on startup
 update_blog_post()
 
-# Set up APScheduler to run update_blog_post every Monday at 9 AM
+# Schedule weekly refresh
 scheduler = BackgroundScheduler()
 scheduler.add_job(update_blog_post, 'cron', day_of_week='mon', hour=9, minute=0)
 scheduler.start()
 
 @app.route("/")
 def home():
-    """Home route that displays the latest news with a refresh button."""
     global latest_blog_post
 
     return render_template_string(f"""
@@ -103,13 +96,13 @@ def home():
                     font-family: 'Arial', sans-serif;
                     text-align: center;
                     padding: 50px;
-                    background: linear-gradient(to right, #FFB347, #FF3CAC); /* Orange to Pink gradient */
+                    background: linear-gradient(to right, #f6d365, #fda085);
                     color: black;
                 }}
                 h1 {{
                     font-size: 2.8em;
                     margin-bottom: 10px;
-                    color: white;
+                    color: black;
                 }}
                 h2, h3, p, strong {{
                     color: black !important;
@@ -124,9 +117,7 @@ def home():
                     text-align: left;
                     font-size: 1.1em;
                     line-height: 1.6;
-                }}
-                #blog-content h2 {{
-                    color: #D32F2F; /* Dark Red headings */
+                    color: black;
                 }}
                 button {{
                     background-color: #FFD700;
@@ -158,11 +149,15 @@ def home():
         </head>
         <body>
             <h1>Business & Tech Weekly</h1>
-            <p style="color: white;">Stay informed on the latest business trends and technology innovations.</p>
+            <p style="color: black;">Stay informed on the latest trends in business and innovation.</p>
             <div id="blog-content">
                 <h2>Latest Insights</h2>
                 <div id="news-text">{latest_blog_post}</div>
+
+                <h2>Healthcare Spotlight</h2>
+                <p>As the Baby Boomer generation continues to age, healthcare remains a pivotal concern. From navigating Medicare to exploring long-term care options and retirement planning, it’s more important than ever to stay informed about healthcare developments and insurance updates tailored for seasoned entrepreneurs and retirees alike.</p>
             </div>
+
             <button onclick="refreshNews()">🔄 Refresh News</button>
             <p id="loading">Updating news... ⏳</p>
 
@@ -191,7 +186,6 @@ def home():
 
 @app.route("/latest-tech-news")
 def latest_tech_news():
-    """Returns the latest blog post. If not available, update it first."""
     global latest_blog_post
     if latest_blog_post is None:
         update_blog_post()
@@ -199,7 +193,6 @@ def latest_tech_news():
 
 @app.route("/refresh")
 def refresh_blog():
-    """Manually refreshes the blog post."""
     update_blog_post()
     return jsonify({"message": "Blog post refreshed manually.", "blog_post": latest_blog_post})
 
