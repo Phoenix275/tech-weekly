@@ -24,31 +24,32 @@ def fetch_latest_articles():
     return articles
 
 def generate_blog_post(articles):
-    """Generates a well-structured blog post using OpenAI's API."""
+    """Generates a well-structured blog post designed for business-minded readers."""
     prompt = f"""
-    You are a professional tech journalist writing for The New York Times, Wired, or The Verge.
-    Write a well-structured, engaging tech blog based on the following trending articles:
+    You are a professional business journalist writing for publications like Forbes, The Wall Street Journal, and Business Insider.
+    Write an engaging, insightful blog post covering the following business and technology news:
 
     {articles}
 
-    **Format Guidelines:**
-    - Use a **clear title** at the top.
-    - Use **h2 headings** for each section.
-    - Separate sections into **paragraphs**.
-    - Avoid **one giant text block**.
-    - **DO NOT** say things like "Sure! I'd be happy to help."
-    - **DO NOT** use asterisks for bold (**like this**), use **proper HTML `<h2>` and `<strong>` tags**.
+    **Guidelines:**
+    - Keep the tone professional, informative, and engaging.
+    - Use clear, structured headings (`<h2>` format) to separate key topics.
+    - Avoid jargon; make content easy to digest for business owners.
+    - Focus on how these trends affect businesses and leadership.
+    - Write in a way that resonates with experienced professionals.
 
     Example Structure:
     ```
-    <h1>The Future of AI in Healthcare</h1>
-    <p>Artificial intelligence is transforming the healthcare industry...</p>
+    <h1>How Emerging Technologies Are Reshaping Business</h1>
 
-    <h2>AI-Powered Diagnostic Tools</h2>
-    <p>Companies like IBM and Google Health are investing in AI algorithms...</p>
+    <h2>New Innovations in Digital Marketing</h2>
+    <p>Companies are leveraging cutting-edge technology to improve customer engagement...</p>
 
-    <h2>Personalized Treatment Plans</h2>
-    <p>AI is analyzing vast amounts of patient data to create...</p>
+    <h2>The Future of Cybersecurity for Small Businesses</h2>
+    <p>With increasing digital threats, business owners must invest in...</p>
+
+    <h2>What This Means for Business Leaders</h2>
+    <p>Executives should start preparing for these changes by...</p>
     ```
     """
     
@@ -56,7 +57,7 @@ def generate_blog_post(articles):
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a professional tech journalist."},
+                {"role": "system", "content": "You are a business journalist."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=700
@@ -98,44 +99,46 @@ def home():
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Tech Weekly</title>
+            <title>Business & Tech Weekly</title>
             <style>
                 body {{
-                    font-family: 'Arial', sans-serif;
+                    font-family: 'Georgia', serif;
                     text-align: center;
                     padding: 50px;
-                    background-color: #f8f9fa;
+                    background: url('https://source.unsplash.com/1600x900/?business,office') no-repeat center center fixed;
+                    background-size: cover;
+                    color: #333;
                 }}
                 h1 {{
-                    color: #222;
-                    font-size: 2.5em;
-                    margin-bottom: 10px;
+                    font-size: 2.8em;
+                    font-weight: bold;
+                    margin-bottom: 15px;
                 }}
                 p {{
                     font-size: 1.2em;
-                    color: #555;
                 }}
                 #blog-content {{
-                    background: white;
-                    padding: 20px;
-                    border-radius: 8px;
-                    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-                    max-width: 800px;
+                    background: rgba(255, 255, 255, 0.9);
+                    padding: 25px;
+                    border-radius: 10px;
+                    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+                    max-width: 900px;
                     margin: 20px auto;
                     text-align: left;
                     font-size: 1.1em;
                     line-height: 1.6;
                 }}
                 h2 {{
-                    color: #007BFF;
-                    margin-top: 15px;
+                    color: #0056b3;
+                    margin-top: 20px;
+                    font-size: 1.8em;
                 }}
                 ul {{
                     padding-left: 20px;
                     line-height: 1.6;
                 }}
                 button {{
-                    background-color: #007BFF;
+                    background-color: #28a745;
                     color: white;
                     padding: 12px 24px;
                     border: none;
@@ -146,33 +149,33 @@ def home():
                     margin-top: 10px;
                 }}
                 button:hover {{
-                    background-color: #0056b3;
+                    background-color: #218838;
                 }}
                 #loading {{
                     display: none;
                     font-size: 16px;
-                    color: #007BFF;
+                    color: #28a745;
                     margin-top: 10px;
                 }}
                 footer {{
                     margin-top: 40px;
                     font-size: 14px;
-                    color: #777;
+                    color: #555;
                 }}
             </style>
         </head>
         <body>
-            <h1>Tech Weekly</h1>
-            <p>🚀 AI-powered tech news updates every Monday at 9 AM.</p>
+            <h1>Business & Tech Weekly</h1>
+            <p>Stay informed on the latest business trends and technology innovations.</p>
             <div id="blog-content">
-                <h2>Latest Tech News</h2>
+                <h2>Latest Insights</h2>
                 <div id="news-text">{latest_blog_post}</div>
             </div>
             <button onclick="refreshNews()">🔄 Refresh News</button>
             <p id="loading">Updating news... ⏳</p>
 
             <footer>
-                <p>Created by <strong>Tegh Bindra</strong> | © 2025</p>
+                <p>© 2025 Business & Tech Weekly | Created by <strong>Tegh Bindra</strong></p>
             </footer>
 
             <script>
@@ -206,7 +209,7 @@ def latest_tech_news():
 def refresh_blog():
     """Manually refreshes the blog post."""
     update_blog_post()
-    return jsonify({"message": "Blog post refreshed manually.", "blog_post": latest_blog_post})
+    return jsonify({"message": "Blog post refreshed.", "blog_post": latest_blog_post})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=True)
