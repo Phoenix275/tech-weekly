@@ -10,10 +10,10 @@ application = app  # Expose the WSGI callable for Gunicorn
 # Initialize OpenAI client
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-RSS_FEED_URL = "https://rss.cnn.com/rss/edition_technology.rss"
+RSS_FEED_URL = "https://rss.cnn.com/rss/edition_business.rss"
 
 # Global variable to store the latest blog post
-latest_blog_post = "Loading latest business insights..."
+latest_blog_post = None
 
 def fetch_latest_articles():
     """Fetches the latest 5 articles from the RSS feed."""
@@ -26,46 +26,50 @@ def fetch_latest_articles():
 def generate_blog_post(articles):
     """Generates a well-structured blog post using OpenAI's API."""
     prompt = f"""
-    You are a professional business journalist writing for Forbes or The Wall Street Journal.
-    Your audience consists of business owners aged 50+.
-    
-    Based on these trending articles, write a **detailed and engaging** business insight post:
-    
+    You are a professional business journalist writing for The Wall Street Journal or Forbes.
+    Write an engaging, easy-to-read business news article based on the following trending topics:
+
     {articles}
 
     **Format Guidelines:**
-    - **Use HTML structure** for proper formatting.
-    - **Use <h2> for headings**.
-    - **Use <p> for paragraphs** (no single giant block of text).
-    - **Make the article informative, engaging, and easy to read.**
-    - **Avoid generic AI phrases** like "Sure! I'd be happy to help."
+    - Use a **clear and engaging title**.
+    - Use **h2 headings** for major topics.
+    - Use **paragraphs** for easy reading.
+    - **Avoid dense blocks of text**.
+    - Ensure the article is suitable for business professionals and entrepreneurs.
 
-    Example:
+    Example Structure:
     ```
-    <h1>How 5G is Changing Business Communication</h1>
-    <p>Businesses are adopting 5G networks at a rapid pace...</p>
+    <h1>The Future of Small Businesses in a Changing Economy</h1>
+    <p>Small businesses are adapting to new market trends...</p>
 
-    <h2>Faster Networks, Faster Growth</h2>
-    <p>New technology allows companies to expand digitally...</p>
+    <h2>Shifting Consumer Behavior</h2>
+    <p>Recent studies show that consumers are prioritizing...</p>
+
+    <h2>Technological Advancements Driving Change</h2>
+    <p>Businesses are leveraging AI tools to optimize...</p>
     ```
     """
     
     try:
         response = client.chat.completions.create(
             model="gpt-4-turbo",
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {"role": "system", "content": "You are a professional business journalist."},
+                {"role": "user", "content": prompt}
+            ],
             max_tokens=700
         )
         content = response.choices[0].message.content.strip()
 
         # Ensure OpenAI does not return irrelevant responses
-        if not content or "Sure" in content or "I'd be happy to help" in content:
-            return "<p>Error: AI did not generate useful content. Try refreshing.</p>"
+        if "Sure" in content or "I'd be happy to help" in content:
+            return "⚠️ Error: AI response was irrelevant. Please refresh again."
         
         return content
 
     except Exception as e:
-        return f"<p>Error generating news: {str(e)}</p>"
+        return f"⚠️ Error generating news: {str(e)}"
 
 def update_blog_post():
     """Fetches articles and updates the global blog post."""
@@ -77,7 +81,7 @@ def update_blog_post():
 # Generate the first blog post at startup
 update_blog_post()
 
-# Set up APScheduler to update blog post every Monday at 9 AM
+# Set up APScheduler to run update_blog_post every Monday at 9 AM
 scheduler = BackgroundScheduler()
 scheduler.add_job(update_blog_post, 'cron', day_of_week='mon', hour=9, minute=0)
 scheduler.start()
@@ -99,15 +103,16 @@ def home():
                     font-family: 'Arial', sans-serif;
                     text-align: center;
                     padding: 50px;
-                    background: linear-gradient(to right, #ff9966, #ff5e62);
-                    color: white;
+                    background: linear-gradient(to right, #4CAF50, #008CBA); /* Green to Blue gradient */
+                    color: black;
                 }}
                 h1 {{
-                    font-size: 2.5em;
+                    font-size: 2.8em;
                     margin-bottom: 10px;
+                    color: white;
                 }}
-                p, h2 {{
-                    color: black; /* Ensure text is visible */
+                h2, h3, p, strong {{
+                    color: black !important;
                 }}
                 #blog-content {{
                     background: white;
@@ -119,29 +124,27 @@ def home():
                     text-align: left;
                     font-size: 1.1em;
                     line-height: 1.6;
-                }}
-                h2 {{
-                    color: #007BFF;
-                    margin-top: 15px;
+                    color: black;
                 }}
                 button {{
-                    background-color: #007BFF;
-                    color: white;
+                    background-color: #FFD700;
+                    color: black;
                     padding: 12px 24px;
                     border: none;
                     cursor: pointer;
                     font-size: 16px;
+                    font-weight: bold;
                     border-radius: 5px;
                     transition: 0.3s;
                     margin-top: 10px;
                 }}
                 button:hover {{
-                    background-color: #0056b3;
+                    background-color: #FFC107;
                 }}
                 #loading {{
                     display: none;
                     font-size: 16px;
-                    color: #007BFF;
+                    color: black;
                     margin-top: 10px;
                 }}
                 footer {{
@@ -153,7 +156,7 @@ def home():
         </head>
         <body>
             <h1>Business & Tech Weekly</h1>
-            <p>📈 Stay informed on the latest business trends and technology innovations.</p>
+            <p style="color: white;">Stay informed on the latest business trends and technology innovations.</p>
             <div id="blog-content">
                 <h2>Latest Insights</h2>
                 <div id="news-text">{latest_blog_post}</div>
