@@ -37,20 +37,8 @@ def generate_blog_post(articles):
     - Use **paragraphs** for easy reading.
     - **Avoid dense blocks of text**.
     - Ensure the article is suitable for business professionals and entrepreneurs.
-
-    Example Structure:
-    ```
-    <h1>The Future of Small Businesses in a Changing Economy</h1>
-    <p>Small businesses are adapting to new market trends...</p>
-
-    <h2>Shifting Consumer Behavior</h2>
-    <p>Recent studies show that consumers are prioritizing...</p>
-
-    <h2>Technological Advancements Driving Change</h2>
-    <p>Businesses are leveraging AI tools to optimize...</p>
-    ```
     """
-    
+
     try:
         response = client.chat.completions.create(
             model="gpt-4-turbo",
@@ -103,7 +91,7 @@ def home():
                     font-family: 'Arial', sans-serif;
                     text-align: center;
                     padding: 50px;
-                    background: linear-gradient(to right, #4CAF50, #008CBA); /* Green to Blue gradient */
+                    background: linear-gradient(to right, #FFB347, #FF3CAC); /* Orange to Pink gradient */
                     color: black;
                 }}
                 h1 {{
@@ -124,7 +112,9 @@ def home():
                     text-align: left;
                     font-size: 1.1em;
                     line-height: 1.6;
-                    color: black;
+                }}
+                #blog-content h2 {{
+                    color: #D32F2F; /* Dark Red headings */
                 }}
                 button {{
                     background-color: #FFD700;
