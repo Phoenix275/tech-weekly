@@ -17,7 +17,9 @@ def generate_newsletter():
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a newsletter generator for baby boomers planning to sell their companies. Generate a JSON with keys 'featured', 'quick_tips' (an array of strings), 'spotlight', and 'looking_ahead'. Ensure the content is engaging, informative, and fun."
+                    "content": ("You are a newsletter generator for baby boomers planning to sell their companies. "
+                                "Generate a JSON with keys 'featured', 'quick_tips' (an array of strings), 'spotlight', and 'looking_ahead'. "
+                                "Ensure the content is engaging, informative, and fun. Provide enough detail so it reads like a longer blog post.")
                 },
                 {
                     "role": "user",
@@ -52,15 +54,7 @@ scheduler.start()
 
 @app.route("/")
 def home():
-    print("=== New code is running ===")  # This will appear in Render logs.
-    newsletter_html = """
-    ...
-    <body>
-      <header>
-        <h1>Business & Tech Weekly (NEW TEST)</h1>
-        ...
-    """
-    return render_template_string(newsletter_html)
+    print("=== New code is running ===")  # Check Render logs for this message.
     newsletter_html = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -130,4 +124,3 @@ def refresh_newsletter():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=True)
-    
