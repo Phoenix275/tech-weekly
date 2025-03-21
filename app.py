@@ -27,16 +27,28 @@ def generate_blog_post(articles):
     """Generates a well-structured blog post using OpenAI's API."""
     prompt = f"""
     You are a professional business journalist writing for The Wall Street Journal or Forbes.
-    Write an engaging, easy-to-read business news article based on the following trending topics:
+    Write an engaging business news article based on the following trending topics:
 
     {articles}
 
     **Format Guidelines:**
-    - Use a **clear and engaging title**.
-    - Use **h2 headings** for major topics.
-    - Use **paragraphs** for easy reading.
-    - **Avoid dense blocks of text**.
-    - Ensure the article is suitable for business professionals and entrepreneurs.
+    - Use a **clear and engaging title** as `<h1>Title Here</h1>`.
+    - Use **h2 headings** for major sections (`<h2>Heading Here</h2>`).
+    - Use **proper paragraph formatting** with `<p>` tags.
+    - Avoid returning Markdown (`##` headings) or unnecessary asterisks.
+    - Ensure the article is structured like a real business article.
+
+    Example Structure:
+    ```
+    <h1>The Future of Small Businesses in a Changing Economy</h1>
+    <p>Small businesses are adapting to new market trends...</p>
+
+    <h2>Shifting Consumer Behavior</h2>
+    <p>Recent studies show that consumers are prioritizing...</p>
+
+    <h2>Technological Advancements Driving Change</h2>
+    <p>Businesses are leveraging AI tools to optimize...</p>
+    ```
     """
 
     try:
@@ -54,7 +66,7 @@ def generate_blog_post(articles):
         if "Sure" in content or "I'd be happy to help" in content:
             return "⚠️ Error: AI response was irrelevant. Please refresh again."
         
-        return content
+        return content  # AI response should now be properly formatted HTML
 
     except Exception as e:
         return f"⚠️ Error generating news: {str(e)}"
