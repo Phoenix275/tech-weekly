@@ -60,7 +60,7 @@ def home():
         <h1>Business & Tech Weekly (NEW TEST)</h1>
         ...
     """
-    return render_template_string(newsletter_html
+    return render_template_string(newsletter_html)
     newsletter_html = f"""
     <!DOCTYPE html>
     <html lang="en">
