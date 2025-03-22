@@ -5,73 +5,86 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
-application = app
+application = app  # Expose the WSGI callable for deployment
 
+# Initialize OpenAI client
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 RSS_FEED_URL = "https://rss.cnn.com/rss/edition_business.rss"
-latest_blog_post = None
+
+# Global variable to store the latest newsletter
+latest_newsletter = None
 
 def fetch_latest_articles():
+    """Fetches the latest 5 articles from the RSS feed."""
     feed = feedparser.parse(RSS_FEED_URL)
     articles = []
     for entry in feed.entries[:5]:
         articles.append(f'"{entry.title}" - {entry.link}')
     return articles
 
-def generate_blog_post(articles):
+def generate_newsletter(articles):
+    """Generates a well-structured newsletter using OpenAI's API."""
     prompt = f"""
-    You are writing a warm, personal weekly newsletter for retired or semi-retired business owners.
-    This newsletter is heartfelt, relatable, and focused on real-life stories and guidance.
+    You are composing a professional newsletter tailored for retired or semi-retired business owners. The newsletter should be structured into the following sections:
 
-    Please organize the blog into the following 5 sections using <h2> headers:
-    1. Business
-    2. Wellness
-    3. Purpose + New Beginning
-    4. Personal Stories
-    5. Resources (Include something on Self-Directed IRAs)
+    1. **Business**: Insights on market trends, small business developments, and financial stability.
+    2. **Wellness**: Health tips, routines, longevity, and mental well-being.
+    3. **Purpose & New Beginnings**: Finding meaning, redefining life post-career, embracing change.
+    4. **Personal Stories**: Uplifting narratives or mini-profiles.
+    5. **Resources**: Practical tools like Self-Directed IRAs, digital literacy, Medicare tips, etc.
 
-    Avoid technical jargon. Make it conversational, simple, and engaging like a letter to a friend.
-    Write like it’s coming from someone who genuinely cares about their reader’s next chapter.
+    Ensure the tone is formal and informative, avoiding personal pronouns and contractions. The content should be engaging yet maintain a professional demeanor.
 
-    Trending topics:
+    Trending topics to incorporate:
     {articles}
     """
     try:
         response = client.chat.completions.create(
             model="gpt-4-turbo",
             messages=[
-                {"role": "system", "content": "You write warm, engaging newsletters."},
+                {"role": "system", "content": "You are a professional newsletter editor."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=1000
         )
-        return response.choices[0].message.content.strip()
+        content = response.choices[0].message.content.strip()
+
+        # Remove unintended trailing characters
+        content = content.rstrip("#")
+
+        return content
+
     except Exception as e:
         return f"⚠️ Error generating newsletter: {str(e)}"
 
-def update_blog_post():
-    global latest_blog_post
+def update_newsletter():
+    """Fetches articles and updates the global newsletter."""
+    global latest_newsletter
     articles = fetch_latest_articles()
-    latest_blog_post = generate_blog_post(articles)
+    latest_newsletter = generate_newsletter(articles)
     print("✅ Newsletter updated.")
 
-update_blog_post()
+# Generate the first newsletter at startup
+update_newsletter()
 
+# Set up APScheduler to run update_newsletter every Monday at 9 AM
 scheduler = BackgroundScheduler()
-scheduler.add_job(update_blog_post, 'cron', day_of_week='mon', hour=9, minute=0)
+scheduler.add_job(update_newsletter, 'cron', day_of_week='mon', hour=9, minute=0)
 scheduler.start()
 
 @app.route("/")
 def home():
-    global latest_blog_post
+    """Home route that displays the latest newsletter with a refresh button."""
+    global latest_newsletter
+
     return render_template_string(f"""
         <!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Weekly Wisdom</title>
+            <title>Weekly Insights</title>
             <style>
                 body {{
                     font-family: 'Georgia', serif;
@@ -118,12 +131,12 @@ def home():
             </style>
         </head>
         <body>
-            <h1>Weekly Wisdom</h1>
+            <h1>Weekly Insights</h1>
             <div id="newsletter">
-                {latest_blog_post}
+                {latest_newsletter}
             </div>
             <button onclick="refreshNews()">🔄 Refresh Newsletter</button>
-            <p id="loading" style="text-align:center;">⏳ Updating...</p>
+            <p id="loading" style="text-align:center; display:none;">⏳ Updating...</p>
             <footer>
                 Created by Tegh Bindra | © 2025
             </footer>
@@ -133,7 +146,7 @@ def home():
                     fetch('/refresh')
                         .then(response => response.json())
                         .then(data => {{
-                            document.getElementById("newsletter").innerHTML = data.blog_post;
+                            document.getElementById("newsletter").innerHTML = data.newsletter;
                             document.getElementById("loading").style.display = "none";
                         }})
                         .catch(error => {{
@@ -146,17 +159,11 @@ def home():
         </html>
     """)
 
-@app.route("/latest-tech-news")
-def latest_tech_news():
-    global latest_blog_post
-    if latest_blog_post is None:
-        update_blog_post()
-    return jsonify({"blog_post": latest_blog_post})
-
 @app.route("/refresh")
-def refresh_blog():
-    update_blog_post()
-    return jsonify({"message": "Newsletter refreshed manually.", "blog_post": latest_blog_post})
+def refresh_newsletter():
+    """Manually refreshes the newsletter."""
+    update_newsletter()
+    return jsonify({"message": "Newsletter refreshed manually.", "newsletter": latest_newsletter})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=True)
