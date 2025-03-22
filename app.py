@@ -125,7 +125,7 @@ def home():
             <button onclick="refreshNews()">🔄 Refresh Newsletter</button>
             <p id="loading" style="text-align:center;">⏳ Updating...</p>
             <footer>
-                Created with ❤️ by Tegh Bindra | © 2025
+                 Created by Tegh Bindra | © 2025
             </footer>
             <script>
                 function refreshNews() {{
