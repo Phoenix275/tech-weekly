@@ -142,7 +142,7 @@ def home():
         <h1>Business & Life Weekly</h1>
         <p>Curated insights for a fulfilling and informed retirement journey.</p>
         <div id="blog-content">
-            {{ latest_blog_post | safe }}
+            {latest_blog_post}
         </div>
         <button onclick="refreshNews()">🔄 Refresh Newsletter</button>
         <p id="loading">Updating newsletter... ⏳</p>
