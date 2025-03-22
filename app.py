@@ -13,19 +13,13 @@ client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 RSS_FEED_URL = "https://rss.cnn.com/rss/edition_business.rss"
 
-# Global variable to store the latest blog post
 latest_blog_post = None
 
 def fetch_latest_articles():
-    """Fetches the latest 5 articles from the RSS feed."""
     feed = feedparser.parse(RSS_FEED_URL)
-    articles = []
-    for entry in feed.entries[:5]:
-        articles.append(f'"{entry.title}" - {entry.link}')
-    return articles
+    return [f'"{entry.title}" - {entry.link}' for entry in feed.entries[:5]]
 
 def generate_blog_post(articles):
-    """Generates a newsletter-style blog post using OpenAI and returns it as HTML."""
     prompt = f"""
     You are a professional newsletter editor writing for an audience of retired and semi-retired business leaders.
     Write a warm but informative newsletter for the month based on the following articles:
@@ -41,13 +35,10 @@ def generate_blog_post(articles):
 
     Format:
     - Use Markdown.
-    - Each section should start with a clear markdown H2 (##).
-    - The title should be H1 (#).
+    - Each section should start with a markdown H2 (##), and title with H1 (#).
     - Paragraphs should be friendly but professional.
-    - Remove any boilerplate like "Warmly" or "Sure! I'd be happy to help."
-    - NO excessive hashtags like ### in the middle.
-
-    The tone should be supportive, respectful, and helpful — like a printed newsletter your grandpa would read and enjoy.
+    - No boilerplate like "Warmly" or "Sure! I'd be happy to help."
+    - Avoid excessive hashtags like ### in the middle.
     """
 
     try:
@@ -59,33 +50,25 @@ def generate_blog_post(articles):
             ],
             max_tokens=1200
         )
-        content_md = response.choices[0].message.content.strip()
-        content_html = markdown.markdown(content_md)
-        return content_html
-
+        markdown_text = response.choices[0].message.content.strip()
+        return markdown.markdown(markdown_text)
     except Exception as e:
         return f"<p><strong>⚠️ Error generating newsletter:</strong> {str(e)}</p>"
 
 def update_blog_post():
-    """Fetches articles and updates the global blog post."""
     global latest_blog_post
     articles = fetch_latest_articles()
     latest_blog_post = generate_blog_post(articles)
     print("✅ Newsletter content updated.")
 
-# Generate the first newsletter at startup
 update_blog_post()
 
-# Set up APScheduler to run update_blog_post every Monday at 9 AM
 scheduler = BackgroundScheduler()
 scheduler.add_job(update_blog_post, 'cron', day_of_week='mon', hour=9, minute=0)
 scheduler.start()
 
 @app.route("/")
 def home():
-    """Home route that displays the latest newsletter with a refresh button."""
-    global latest_blog_post
-
     return render_template_string("""
         <!DOCTYPE html>
         <html lang="en">
@@ -178,17 +161,16 @@ def home():
         </html>
     """, latest_blog_post=latest_blog_post)
 
-@app.route("/latest-tech-news")
-def latest_tech_news():
-    global latest_blog_post
-    if latest_blog_post is None:
-        update_blog_post()
-    return jsonify({"blog_post": latest_blog_post})
-
 @app.route("/refresh")
 def refresh_blog():
     update_blog_post()
     return jsonify({"message": "Newsletter refreshed manually.", "blog_post": latest_blog_post})
+
+@app.route("/latest-tech-news")
+def latest_tech_news():
+    if latest_blog_post is None:
+        update_blog_post()
+    return jsonify({"blog_post": latest_blog_post})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=True)
