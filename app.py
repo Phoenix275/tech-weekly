@@ -60,8 +60,6 @@ def generate_blog_post(articles):
             max_tokens=1200
         )
         content_md = response.choices[0].message.content.strip()
-
-        # Convert Markdown to HTML
         content_html = markdown.markdown(content_md)
         return content_html
 
@@ -88,7 +86,7 @@ def home():
     """Home route that displays the latest newsletter with a refresh button."""
     global latest_blog_post
 
-    return render_template_string(f"""
+    return render_template_string("""
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -96,22 +94,22 @@ def home():
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Business & Life Weekly</title>
             <style>
-                body {{
+                body {
                     font-family: 'Georgia', serif;
                     text-align: center;
                     padding: 40px;
                     background: linear-gradient(to right, #fceabb, #f8b500);
                     color: #333;
-                }}
-                h1 {{
+                }
+                h1 {
                     font-size: 2.8em;
                     color: #2c3e50;
-                }}
-                h2 {{
+                }
+                h2 {
                     color: #444;
                     margin-top: 25px;
-                }}
-                #blog-content {{
+                }
+                #blog-content {
                     background: white;
                     padding: 30px;
                     border-radius: 10px;
@@ -121,8 +119,8 @@ def home():
                     text-align: left;
                     font-size: 1.15em;
                     line-height: 1.7;
-                }}
-                button {{
+                }
+                button {
                     background-color: #5a9;
                     color: white;
                     padding: 12px 24px;
@@ -131,28 +129,28 @@ def home():
                     border-radius: 6px;
                     cursor: pointer;
                     margin-top: 10px;
-                }}
-                button:hover {{
+                }
+                button:hover {
                     background-color: #4c8;
-                }}
-                #loading {{
+                }
+                #loading {
                     display: none;
                     font-size: 16px;
                     color: #444;
                     margin-top: 10px;
-                }}
-                footer {{
+                }
+                footer {
                     margin-top: 40px;
                     font-size: 14px;
                     color: #555;
-                }}
+                }
             </style>
         </head>
         <body>
             <h1>Business & Life Weekly</h1>
             <p>Curated insights for a fulfilling and informed retirement journey.</p>
             <div id="blog-content">
-                {{latest_blog_post | safe}}
+                {{ latest_blog_post | safe }}
             </div>
             <button onclick="refreshNews()">🔄 Refresh Newsletter</button>
             <p id="loading">Updating newsletter... ⏳</p>
@@ -162,19 +160,19 @@ def home():
             </footer>
 
             <script>
-                function refreshNews() {{
+                function refreshNews() {
                     document.getElementById("loading").style.display = "block";
                     fetch('/refresh')
                         .then(response => response.json())
-                        .then(data => {{
+                        .then(data => {
                             document.getElementById("blog-content").innerHTML = data.blog_post;
                             document.getElementById("loading").style.display = "none";
-                        }})
-                        .catch(error => {{
+                        })
+                        .catch(error => {
                             alert('Error refreshing content.');
                             document.getElementById("loading").style.display = "none";
-                        }});
-                }}
+                        });
+                }
             </script>
         </body>
         </html>
@@ -182,7 +180,6 @@ def home():
 
 @app.route("/latest-tech-news")
 def latest_tech_news():
-    """Returns the latest blog post as JSON."""
     global latest_blog_post
     if latest_blog_post is None:
         update_blog_post()
@@ -190,7 +187,6 @@ def latest_tech_news():
 
 @app.route("/refresh")
 def refresh_blog():
-    """Manually refreshes the blog post."""
     update_blog_post()
     return jsonify({"message": "Newsletter refreshed manually.", "blog_post": latest_blog_post})
 
