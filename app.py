@@ -5,18 +5,14 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
-application = app  # Expose the WSGI callable for Gunicorn
+application = app
 
-# Initialize OpenAI client
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 RSS_FEED_URL = "https://rss.cnn.com/rss/edition_business.rss"
-
-# Global variable to store the latest blog post
 latest_blog_post = None
 
 def fetch_latest_articles():
-    """Fetches the latest 5 articles from the RSS feed."""
     feed = feedparser.parse(RSS_FEED_URL)
     articles = []
     for entry in feed.entries[:5]:
@@ -24,58 +20,44 @@ def fetch_latest_articles():
     return articles
 
 def generate_blog_post(articles):
-    """Generates a well-structured blog post using OpenAI's API."""
     prompt = f"""
-    You are a professional business journalist writing for The Wall Street Journal or Forbes.
-    Write an engaging, easy-to-read business news article based on the following trending topics:
+    You are writing a warm, personal weekly newsletter for retired or semi-retired business owners.
+    This newsletter is heartfelt, relatable, and focused on real-life stories and guidance.
 
+    Please organize the blog into the following 5 sections using <h2> headers:
+    1. Business
+    2. Wellness
+    3. Purpose + New Beginning
+    4. Personal Stories
+    5. Resources (Include something on Self-Directed IRAs)
+
+    Avoid technical jargon. Make it conversational, simple, and engaging like a letter to a friend.
+    Write like it’s coming from someone who genuinely cares about their reader’s next chapter.
+
+    Trending topics:
     {articles}
-
-    **Format Guidelines:**
-    - Use a clear and engaging <h1> title.
-    - Use <h2> headings for major topics.
-    - Use <p> paragraphs for clarity and visual spacing.
-    - Avoid dense blocks of text.
-    - Keep it relevant for Baby Boomer business owners.
-    - Avoid mentioning AI in the article body.
-
-    Example Structure:
-    <h1>How Small Businesses Are Embracing Change</h1>
-    <p>From inflation to innovation, businesses are adapting...</p>
-
-    <h2>Healthcare & Insurance</h2>
-    <p>What Baby Boomers need to know about current policies...</p>
     """
-
     try:
         response = client.chat.completions.create(
             model="gpt-4-turbo",
             messages=[
-                {"role": "system", "content": "You are a professional business journalist."},
+                {"role": "system", "content": "You write warm, engaging newsletters."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=700
+            max_tokens=1000
         )
-        content = response.choices[0].message.content.strip()
-
-        if "Sure" in content or "I'd be happy to help" in content:
-            return "⚠️ Error: AI response was irrelevant. Please refresh again."
-        
-        return content
-
+        return response.choices[0].message.content.strip()
     except Exception as e:
-        return f"⚠️ Error generating news: {str(e)}"
+        return f"⚠️ Error generating newsletter: {str(e)}"
 
 def update_blog_post():
     global latest_blog_post
     articles = fetch_latest_articles()
     latest_blog_post = generate_blog_post(articles)
-    print("✅ Blog post updated.")
+    print("✅ Newsletter updated.")
 
-# Generate on startup
 update_blog_post()
 
-# Schedule weekly refresh
 scheduler = BackgroundScheduler()
 scheduler.add_job(update_blog_post, 'cron', day_of_week='mon', hour=9, minute=0)
 scheduler.start()
@@ -83,99 +65,79 @@ scheduler.start()
 @app.route("/")
 def home():
     global latest_blog_post
-
     return render_template_string(f"""
         <!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Business & Tech Weekly</title>
+            <title>Weekly Wisdom</title>
             <style>
                 body {{
-                    font-family: 'Arial', sans-serif;
-                    text-align: center;
+                    font-family: 'Georgia', serif;
                     padding: 50px;
-                    background: linear-gradient(to right, #f6d365, #fda085);
-                    color: black;
+                    background: linear-gradient(to right, #fdf6e3, #f0f0f0);
+                    color: #333;
                 }}
                 h1 {{
                     font-size: 2.8em;
-                    margin-bottom: 10px;
-                    color: black;
+                    color: #444;
+                    text-align: center;
                 }}
-                h2, h3, p, strong {{
-                    color: black !important;
+                h2 {{
+                    color: #2a4d69;
                 }}
-                #blog-content {{
-                    background: white;
-                    padding: 20px;
-                    border-radius: 8px;
-                    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+                #newsletter {{
+                    background: #fff;
+                    padding: 30px;
+                    border-radius: 10px;
                     max-width: 800px;
                     margin: 20px auto;
-                    text-align: left;
-                    font-size: 1.1em;
-                    line-height: 1.6;
-                    color: black;
+                    box-shadow: 0 0 15px rgba(0,0,0,0.1);
                 }}
                 button {{
-                    background-color: #FFD700;
-                    color: black;
+                    display: block;
+                    margin: 20px auto;
+                    background-color: #f4a261;
+                    color: #fff;
                     padding: 12px 24px;
                     border: none;
-                    cursor: pointer;
                     font-size: 16px;
-                    font-weight: bold;
                     border-radius: 5px;
-                    transition: 0.3s;
-                    margin-top: 10px;
+                    cursor: pointer;
                 }}
                 button:hover {{
-                    background-color: #FFC107;
-                }}
-                #loading {{
-                    display: none;
-                    font-size: 16px;
-                    color: black;
-                    margin-top: 10px;
+                    background-color: #e76f51;
                 }}
                 footer {{
+                    text-align: center;
                     margin-top: 40px;
                     font-size: 14px;
-                    color: white;
+                    color: #777;
                 }}
             </style>
         </head>
         <body>
-            <h1>Business & Tech Weekly</h1>
-            <p style="color: black;">Stay informed on the latest trends in business and innovation.</p>
-            <div id="blog-content">
-                <h2>Latest Insights</h2>
-                <div id="news-text">{latest_blog_post}</div>
-
-                <h2>Healthcare Spotlight</h2>
-                <p>As the Baby Boomer generation continues to age, healthcare remains a pivotal concern. From navigating Medicare to exploring long-term care options and retirement planning, it’s more important than ever to stay informed about healthcare developments and insurance updates tailored for seasoned entrepreneurs and retirees alike.</p>
+            <h1>Weekly Wisdom</h1>
+            <div id="newsletter">
+                {latest_blog_post}
             </div>
-
-            <button onclick="refreshNews()">🔄 Refresh News</button>
-            <p id="loading">Updating news... ⏳</p>
-
+            <button onclick="refreshNews()">🔄 Refresh Newsletter</button>
+            <p id="loading" style="text-align:center;">⏳ Updating...</p>
             <footer>
-                <p>Created by <strong>Tegh Bindra</strong> | © 2025</p>
+                Created with ❤️ by Tegh Bindra | © 2025
             </footer>
-
             <script>
                 function refreshNews() {{
                     document.getElementById("loading").style.display = "block";
                     fetch('/refresh')
                         .then(response => response.json())
                         .then(data => {{
-                            document.getElementById("news-text").innerHTML = data.blog_post;
+                            document.getElementById("newsletter").innerHTML = data.blog_post;
                             document.getElementById("loading").style.display = "none";
                         }})
                         .catch(error => {{
-                            alert('Error updating news.');
+                            alert("Failed to update.");
                             document.getElementById("loading").style.display = "none";
                         }});
                 }}
@@ -194,7 +156,7 @@ def latest_tech_news():
 @app.route("/refresh")
 def refresh_blog():
     update_blog_post()
-    return jsonify({"message": "Blog post refreshed manually.", "blog_post": latest_blog_post})
+    return jsonify({"message": "Newsletter refreshed manually.", "blog_post": latest_blog_post})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=True)
